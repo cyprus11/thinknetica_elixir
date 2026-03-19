@@ -8,6 +8,9 @@ defmodule EchoServer do
       {:ping, from} ->
         send(from, {:pong, node()})
         loop()
+      {_, from} ->
+        send(from, {:error, node()})
+        loop()
     end
   end
 end
