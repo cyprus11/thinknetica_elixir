@@ -3,12 +3,14 @@ defmodule CustomAi.ChatCompletion.FlanT5 do
 
   use GenServer
 
+  @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts \\ []) do
     {name, opts} = opts |> Keyword.put_new(:name, __MODULE__) |> Keyword.pop!(:name)
     GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   @impl GenServer
+  @spec init(keyword()) :: {:ok, map()}
   def init(opts) do
     model_base = {:hf, "google/flan-t5-base"}
 
@@ -26,6 +28,8 @@ defmodule CustomAi.ChatCompletion.FlanT5 do
   end
 
   @impl GenServer
+  @spec handle_call({:serve, binary() | map(), (binary() -> term())}, GenServer.from(), map()) ::
+          {:reply, :ok, map()}
   def handle_call({:serve, prompt, callback}, _from, %{serving: serving} = state) do
     Task.start(fn ->
       serving
@@ -41,9 +45,17 @@ defmodule CustomAi.ChatCompletion.FlanT5 do
   @behaviour CustomAi.ChatCompletion
 
   @impl CustomAi.ChatCompletion
+  @spec call(binary() | map(), keyword()) :: {:ok, String.t()} | {:error, term()}
   def call(request, opts) do
     {callback, opts} = Keyword.pop(opts, :callback, fn _ -> :ok end)
     {name, _opts} = Keyword.pop(opts, :name, __MODULE__)
     GenServer.call(name, {:serve, request, callback}, :infinity)
+    {:ok, ""}
+  end
+
+  @impl CustomAi.ChatCompletion
+  @spec to_string(term()) :: String.t()
+  def to_string(outcome) do
+    inspect(outcome)
   end
 end
