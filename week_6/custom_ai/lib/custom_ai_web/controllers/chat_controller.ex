@@ -1,14 +1,11 @@
 defmodule CustomAiWeb.ChatController do
   use CustomAiWeb, :controller
 
-  # def index(conn, _params) do
-  #   render(conn, :index, query: "")
-  # end
-
+  @spec stream(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def stream(conn, %{"request" => request}) do
     conn =
       conn
-      |> put_resp_content_type(@nd_json_content_type)
+      |> put_resp_content_type("application/json")
       |> send_chunked(200)
 
     CustomAi.ChatCompletion.call(request,
