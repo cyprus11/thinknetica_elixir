@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: .
+    env_file:
+        - .env
+    restart: on-failure:3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["/entrypoint.sh"]
+    ports:
+      - "4000:4000"
+      - "4369:4369"
+      - "4370:4370"
+    volumes:
+      - uploads:/opt/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:4000 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    restart: always
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  postgres:
+  uploads:
